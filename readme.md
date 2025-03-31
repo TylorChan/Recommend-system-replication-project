@@ -2,21 +2,25 @@
 ### Overveiw
 The original work is from [NBCRS: Neighborhood-based Collaborative Filtering for Conversational Recommendation (Recsys 24)](https://github.com/zhouhanxie/neighborhood-based-CF-for-CRS/tree/main). Our replication project is to test NBCRS with an additional baseline model, conversatinal datasets and metric (NDCG).
 
-### datasets
+### Datasets
 
 - Processed datasets (Inspired, Redial, Reddit) are in ```datasets``` folder.
+- The additional dataset we want to test is from [Recommendation as a Communication Game:
+Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.03922), (can be found in [Google Drive](https://drive.google.com/drive/folders/1nilk6FUktW2VjNlATdM0VMehzSOPIvJ0))
+- 
 
-### training
+### Training
 
 - Training code is in ```train_knnlm.py```, see ```modeling_nmf.py``` for the actual knnlm model.
 - See ```train_knnlm.sh``` for bash commands for training the model.
 
-### inference
+### Inference
 - see ```inference_knnlm.ipynb``` for the code for tuning number of neighbors to use for the KNN component and doing inference on test set for the datasets.
 
-### environment
+### Environment
 
 - see ```requirements.txt``` which is exported via ```conda list -e > requirements.txt```.
+- see ```requirenment_new.txt``` if you want to build environment through ```pip install -r requirement_new.txt```
 
 ### Procedure for running on a dataset:
 
