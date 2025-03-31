@@ -1,14 +1,11 @@
+
+### Overveiw
+The original work is from [NBCRS: Neighborhood-based Collaborative Filtering for Conversational Recommendation (Recsys 24)](https://github.com/zhouhanxie/neighborhood-based-CF-for-CRS/tree/main). Our replication project is to test NBCRS with an additional baseline model, conversatinal datasets and metric (NDCG).
 ### NBCRS
 
 Implementation for NBCRS: Neighborhood-based Collaborative Filtering for Conversational Recommendation (Recsys 24). 
 
 The take away is KNN is a fairly strong baseline for CRS, too, esp when you don't have KGs or do have a large dataset!
-
-### Should I use NBCRS?
-
-Hopefully the figure below sheds some light on when to use which class of models - do double check your current SOTA so you don't miss things!
-
-<img src="resources/CONVREC-decision-tree.1.jpeg" alt="drawing" style="width:700px;"/>
 
 ### datasets
 

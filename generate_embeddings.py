@@ -1,6 +1,6 @@
 # setup these file dirs, you can ignore the rest unless you are modifying the code
-input_file_dir = 'datasets/reddit_small/reddit_small_train.csv'
-output_file_dir = 'reddit_small_semantic_embs_20000.pt'
+input_file_dir = 'datasets/reddit/reddit_large_train.csv'
+output_file_dir = 'semantic_embs_20000.pt'
 
 # generating item embeddings
 import pandas as pd
