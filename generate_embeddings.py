@@ -1,101 +1,116 @@
+
+
 # setup these file dirs, you can ignore the rest unless you are modifying the code
-input_file_dir = 'datasets/reddit/reddit_large_train.csv'
-output_file_dir = 'semantic_embs_20000.pt'
+# input_file_dir = 'datasets/inspired/inspired_train.csv'
+# output_file_dir = 'semantic_embs_inspired.pt'
 
 # generating item embeddings
-import pandas as pd
-reddit_posts_train = pd.read_csv(input_file_dir)
-from itertools import chain
-from collections import defaultdict
-from collections import Counter
 
-eligible_movies = [eval(i) for i in reddit_posts_train['movies']]
-frequency = Counter(list(chain.from_iterable(eligible_movies)))
-sum(i[1] for i in frequency.most_common(20000)) / sum(i[1] for i in frequency.items())
+def main(args=None):
+    import pandas as pd
+    from itertools import chain
+    from collections import defaultdict
+    from collections import Counter
 
-unique_movie_names = sorted(i[0] for i in frequency.most_common(20000))
-movie2id = {movie: idx for idx, movie in enumerate(unique_movie_names)}
-id2movie = {idx:movie for movie,idx in movie2id.items()}
-len(movie2id)
+    input_file_dir = args.input_file_dir
+    output_file_dir = args.output_file_dir
+    reddit_posts_train = pd.read_csv(input_file_dir)
+    eligible_movies = [eval(i) for i in reddit_posts_train['movies']]
+    frequency = Counter(list(chain.from_iterable(eligible_movies)))
+    sum(i[1] for i in frequency.most_common(20000)) / sum(i[1] for i in frequency.items())
 
-import numpy as np
-posts = np.array(list(reddit_posts_train['full_situation']))
+    unique_movie_names = sorted(i[0] for i in frequency.most_common(20000))
+    movie2id = {movie: idx for idx, movie in enumerate(unique_movie_names)}
+    id2movie = {idx:movie for movie,idx in movie2id.items()}
+    len(movie2id)
 
-from collections import defaultdict
-movie2post_ids = defaultdict(set)
+    import numpy as np
+    posts = np.array(list(reddit_posts_train['full_situation']))
 
-for post_id, movies in enumerate(eligible_movies):
-    for movie in movies:
-        if movie in movie2id:
-            movie2post_ids[movie].add(post_id)
+    from collections import defaultdict
+    movie2post_ids = defaultdict(set)
 
-movie2post_ids = dict(movie2post_ids)
+    for post_id, movies in enumerate(eligible_movies):
+        for movie in movies:
+            if movie in movie2id:
+                movie2post_ids[movie].add(post_id)
 
-from transformers import AutoTokenizer, AutoModel
-import torch
-import torch.nn.functional as F
+    movie2post_ids = dict(movie2post_ids)
 
-#Mean Pooling - Take attention mask into account for correct averaging
-def mean_pooling(model_output, attention_mask):
-    token_embeddings = model_output[0] #First element of model_output contains all token embeddings
-    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-    return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+    from transformers import AutoTokenizer, AutoModel
+    import torch
+    import torch.nn.functional as F
 
-
-# Ensure GPU is available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #Mean Pooling - Take attention mask into account for correct averaging
+    def mean_pooling(model_output, attention_mask):
+        token_embeddings = model_output[0] #First element of model_output contains all token embeddings
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+        return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
 
 
-# Sentences we want sentence embeddings for
-sentences = [str(i) for i in posts]
+    # Ensure GPU is available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load model from HuggingFace Hub
-tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2')
-model = AutoModel.from_pretrained('sentence-transformers/all-MiniLM-L6-v2').to(device)
-model.eval()
 
-# Initialize an empty list to hold the sentence embeddings
-all_sentence_embeddings = []
+    # Sentences we want sentence embeddings for
+    sentences = [str(i) for i in posts]
 
-# Process sentences in batches
-batch_size = 64
+    # Load model from HuggingFace Hub
+    tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2')
+    model = AutoModel.from_pretrained('sentence-transformers/all-MiniLM-L6-v2').to(device)
+    model.eval()
 
-from tqdm import tqdm
-for i in tqdm(range(0, len(sentences), batch_size), total=len(sentences)//batch_size):
-    batch_sentences = sentences[i:i+batch_size]
-    
-    # Tokenize sentences
-    encoded_input = tokenizer(batch_sentences, padding=True, truncation=True, return_tensors='pt').to(device)
-    
-    # Compute token embeddings
-    with torch.no_grad():
-        model_output = model(**encoded_input)
+    # Initialize an empty list to hold the sentence embeddings
+    all_sentence_embeddings = []
 
-    # Perform pooling
-    sentence_embeddings = mean_pooling(model_output, encoded_input['attention_mask']).cpu()
-    
-    all_sentence_embeddings.append(sentence_embeddings)
+    # Process sentences in batches
+    batch_size = 64
 
-# Concatenate all batched embeddings
-all_sentence_embeddings = torch.cat(all_sentence_embeddings, dim=0)
+    from tqdm import tqdm
+    for i in tqdm(range(0, len(sentences), batch_size), total=len(sentences)//batch_size):
+        batch_sentences = sentences[i:i+batch_size]
+        
+        # Tokenize sentences
+        encoded_input = tokenizer(batch_sentences, padding=True, truncation=True, return_tensors='pt').to(device)
+        
+        # Compute token embeddings
+        with torch.no_grad():
+            model_output = model(**encoded_input)
 
-# Normalize embeddings
-sentence_embeddings = F.normalize(sentence_embeddings, p=2, dim=1)
+        # Perform pooling
+        sentence_embeddings = mean_pooling(model_output, encoded_input['attention_mask']).cpu()
+        
+        all_sentence_embeddings.append(sentence_embeddings)
 
-#print("Sentence embeddings:")
-#print(all_sentence_embeddings)
+    # Concatenate all batched embeddings
+    all_sentence_embeddings = torch.cat(all_sentence_embeddings, dim=0)
 
-all_sentence_embeddings = all_sentence_embeddings.cpu()
+    # Normalize embeddings
+    sentence_embeddings = F.normalize(sentence_embeddings, p=2, dim=1)
 
-movie_embeddings = []
+    #print("Sentence embeddings:")
+    #print(all_sentence_embeddings)
 
-for movie in tqdm(unique_movie_names):
-    associated_post_ids = torch.Tensor(list(movie2post_ids[movie]))
-    movie_embedding = torch.mean(
-        all_sentence_embeddings[list(movie2post_ids[movie])], dim=0
-    )
-    movie_embeddings.append(movie_embedding.cpu().numpy().tolist())
+    all_sentence_embeddings = all_sentence_embeddings.cpu()
 
-embs = torch.tensor(movie_embeddings)
+    movie_embeddings = []
 
-torch.save(embs, output_file_dir)
+    for movie in tqdm(unique_movie_names):
+        associated_post_ids = torch.Tensor(list(movie2post_ids[movie]))
+        movie_embedding = torch.mean(
+            all_sentence_embeddings[list(movie2post_ids[movie])], dim=0
+        )
+        movie_embeddings.append(movie_embedding.cpu().numpy().tolist())
+
+    embs = torch.tensor(movie_embeddings)
+
+    torch.save(embs, output_file_dir)
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate_embeddings")
+    parser.add_argument('--input_file_dir', type=str, default='datasets/inspired/inspired_train.csv', help='train data path')
+    parser.add_argument('--output_file_dir', type=str, default='semantic_embs_inspired.pt', help='embeddings output file')
+    args = parser.parse_args()
+
+    main(args)

@@ -48,8 +48,10 @@ class NMFConfig(PretrainedConfig):
         
     @classmethod 
     def from_pretrained(cls, pretrained_model_name_or_path, **kwargs):
+        ## This is original code
         mlm_config = AutoConfig.from_pretrained(os.path.join(pretrained_model_name_or_path, 'base_mlm_config'))
         config_dict = cls._dict_from_json_file(os.path.join(pretrained_model_name_or_path, 'config.json'))
+
         config_dict['mlm_config'] = mlm_config
         config = NMFConfig(**config_dict)
         config.mlm_config = mlm_config 
