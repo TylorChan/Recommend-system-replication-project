@@ -6,7 +6,8 @@ The original work is from [NBCRS: Neighborhood-based Collaborative Filtering for
 
 - Processed datasets (Inspired, Redial, Reddit) are in ```datasets``` folder.
 - We post-processed the additional dataset GoRecDial from [Recommendation as a Communication Game:
-Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.03922), (can be found in [Google Drive](https://drive.google.com/drive/folders/1nilk6FUktW2VjNlATdM0VMehzSOPIvJ0)).
+Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.03922), (can be found in [Google Drive](https://drive.google.com/drive/folders/1nilk6FUktW2VjNlATdM0VMehzSOPIvJ0)). The approach is listed in section ```Procedure for running on a dataset:
+```
 
 ### Training
 
