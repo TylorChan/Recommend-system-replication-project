@@ -5,14 +5,13 @@ The original work is from [NBCRS: Neighborhood-based Collaborative Filtering for
 ### Datasets
 
 - Processed datasets (Inspired, Redial, Reddit) are in ```datasets``` folder.
-- The additional dataset we want to test is from [Recommendation as a Communication Game:
-Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.03922), (can be found in [Google Drive](https://drive.google.com/drive/folders/1nilk6FUktW2VjNlATdM0VMehzSOPIvJ0))
-- 
+- We post-processed the additional dataset GoRecDial from [Recommendation as a Communication Game:
+Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.03922), (can be found in [Google Drive](https://drive.google.com/drive/folders/1nilk6FUktW2VjNlATdM0VMehzSOPIvJ0)).
 
 ### Training
 
 - Training code is in ```train_knnlm.py```, see ```modeling_nmf.py``` for the actual knnlm model.
-- See ```train_knnlm.sh``` for bash commands for training the model.
+- See ```train_knnlm.slurm``` for bash commands for training the model.
 
 ### Inference
 - see ```inference_knnlm.ipynb``` for the code for tuning number of neighbors to use for the KNN component and doing inference on test set for the datasets.
@@ -20,15 +19,22 @@ Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.
 ### Environment
 
 - see ```requirements.txt``` which is exported via ```conda list -e > requirements.txt```.
-- see ```requirenment_new.txt``` if you want to build environment through ```pip install -r requirement_new.txt```
+- see ```requirenment_new1.txt``` if you want to build environment through ```pip install -r requirement_new1.txt```
 
 ### Procedure for running on a dataset:
 
-- First, run ```generate_embeddings.py```, to generate semantic embeddings by factorizing item-item co-occur matrix. (mainly to stablize training)
-- Then, run ```train_knnlm.py```. We use huggingface style training pipeline.
-- Run ```inference_knnlm.ipynb``` to get evaluation results
+- For convenience, we've already included fully processed datasets in the ```datasets/GoRecDial folder``` that are ready to use
+- For those who wish to build custom train and test datasets, please download the raw files into the ```datasets/GoRecDial/raw_GoRecDial``` directory (you'll need to create this folder yourself). 
+- To construct new train and test dataset, run ```GoRecDial_Post_processing.ipynb```. This file processes the raw files you downloaded in the previous step.
+
+#### For NBCRS
+
+- First enable your virutal environment, then install the environment via ```pip install -r requirements_new1.txt```.
+- Then, execute the ```train.sh``` script to generate semantic embeddings through item-item co-occurrence matrix factorization and to train the models on each dataset. If you prefer to generate embeddings and train models separately, you can run these bash commands individually.
+- Then Run ```inference_knnlm.ipynb``` to get evaluation results
    - Got way higher numbers for Inspired/Redial than in the paper? We found that the way we processed the data (including both movie and non-movie entities as target items during training while evaluating on predicting movies) results in lower numbers for the models compared to prior works.
    - Now, we exlucde non-movie entities during prediction by default. See usage of ```inspired/redial_eligible_entities``` variables for details in ```inference_knnlm.ipynb```; should be fairly easy to switch of this behavior by commenting out the post-filtering line.
+- Run ```inference_knnlm_zero_shot.ipynb``` to get the zero-shot setting evaluation.
    
 
 
