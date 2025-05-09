@@ -11,7 +11,7 @@ Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.
 ### Training
 
 - Training code is in ```train_knnlm.py```, see ```modeling_nmf.py``` for the actual knnlm model.
-- See ```train_knnlm.slurm``` for bash commands for training the model.
+- See ```train_knnlm.sh``` for bash commands for training the model.
 
 ### Inference
 - see ```inference_knnlm.ipynb``` for the code for tuning number of neighbors to use for the KNN component and doing inference on test set for the datasets.
@@ -35,6 +35,9 @@ Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.
    - Got way higher numbers for Inspired/Redial than in the paper? We found that the way we processed the data (including both movie and non-movie entities as target items during training while evaluating on predicting movies) results in lower numbers for the models compared to prior works.
    - Now, we exlucde non-movie entities during prediction by default. See usage of ```inspired/redial_eligible_entities``` variables for details in ```inference_knnlm.ipynb```; should be fairly easy to switch of this behavior by commenting out the post-filtering line.
 - Run ```inference_knnlm_zero_shot.ipynb``` to get the zero-shot setting evaluation.
+
+#### For LLMs
+
    
 
 
