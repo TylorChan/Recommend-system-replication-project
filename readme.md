@@ -1,6 +1,7 @@
 
 ### Overveiw
-The original work is from [NBCRS: Neighborhood-based Collaborative Filtering for Conversational Recommendation (Recsys 24)](https://github.com/zhouhanxie/neighborhood-based-CF-for-CRS/tree/main). Our replication project is to test NBCRS with an additional baseline model, conversatinal datasets and metric (NDCG).
+The original work is from [NBCRS: Neighborhood-based Collaborative Filtering for Conversational Recommendation (Recsys 24)](https://github.com/zhouhanxie/neighborhood-based-CF-for-CRS/tree/main). For our replication job, We extended the evaluation by testing NBCRS on an additional dataset (GoRecDial) and comparing its performance against three baseline LLMs: Qwen, Mistral, and retrieval-augmented generation (RAG) versions of both models. We also used Mean Reciprocal Rank (MRR) as an additional evaluation metric to provide a more comprehensive assessment of recommendation quality.
+
 
 ### Datasets
 
