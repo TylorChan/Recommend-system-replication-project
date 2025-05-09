@@ -7,7 +7,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from concurrent.futures import ThreadPoolExecutor
 import pickle
-from extract_movies import extract_movies
+from extract_movies_for_rag import extract_movies
 from tqdm import tqdm
 
 
@@ -36,7 +36,7 @@ def build_template(context, pred, candidates):
 
     prompt = f"""Pretend you are an reranker in the movie recommender system. I will give you a conversation between a user and a movie recommender, along with a list of 20 recommended movies.
 
-Based on the conversation, please rerank the list of recommended movies from most aligned with user's  preferences to least aligned. If you think the order of the given list of recommended movies already ranked from most aligned with the user's preferences to least aligned, do not reorder. Please reply me with an ordered movie list without extra sentences.
+Based on the conversation, please rerank the list of recommended movies from most aligned with user's  preferences to least aligned. If you think the order of the given list of recommended movies already ranked from most aligned with the user's preferences to least aligned, do not reorder. Please reply me with an ordered list of 20 movies without extra sentences.
 
 Here is the conversation:
 {context}
@@ -54,13 +54,18 @@ Here is the list of recommended movies:{movies}
     )
 
 
-# send 8 test data points to model, then get model's movie recommendation for each data points
+
+# send batch_Size test data points to model, then get model's movie recommendation for each data points
 def generate_batch(batch_context, batch_pred, candidates, model, device):
     rec_movies_batch = []
     templated_texts = []
-    
+
+    movie2id = {each: idx for idx, each in enumerate(candidates)}
+    pred_candidates = []
+
     for context, pred in zip(batch_context, batch_pred):
         templated_texts.append(build_template(context, pred, candidates))
+        pred_candidates.append([candidates[each] for each in pred])
 
     inputs = tokenizer(
         templated_texts,
@@ -84,24 +89,25 @@ def generate_batch(batch_context, batch_pred, candidates, model, device):
 
     decoded = tokenizer.batch_decode(output_token_ids, skip_special_tokens=True)
 
-    for text in decoded:
-        rec_movies_batch.append(extract_movies(text, candidates))
+    for idx, text in enumerate(decoded):
+        rec_movies_batch.append(extract_movies(text, pred_candidates[idx], movie2id))
 
     return rec_movies_batch
 
 
 # worker thread
 def worker(contexts_slice, context_pred, candidates, model, device):
-    output = []
+    all_output = []
 
     for i in tqdm(range(0, len(contexts_slice), batch_size)):
 
         batch_context = contexts_slice[i : i + batch_size]
         batch_pred = context_pred[i : i + batch_size]
+        batch_output = generate_batch(batch_context, batch_pred, candidates, model, device)
+        
+        all_output.extend(batch_output)
 
-        output.extend(generate_batch(batch_context, batch_pred, candidates, model, device))
-
-    return output
+    return all_output
 
 
 def main():
@@ -109,6 +115,7 @@ def main():
         "reddit": './pred_result_reddit.pickle',
         "redial": './pred_result_redial.pickle',
         "inspired": './pred_result_inspired.pickle',
+        "GoRecDial": './pred_result_GoRecDial.pickle'
     }
 
     for each in datasets:
@@ -126,7 +133,6 @@ def main():
         all_contexts = result_data["context"]
         all_pred = result_data["pred_label"]
         
-        reordered_preds = []
 
         half = (len(all_contexts) + 1) // 2
         part1, part2 = all_contexts[:half], all_contexts[half:]
@@ -134,14 +140,14 @@ def main():
 
         # create two thread, each thread manage one GPU.
         with ThreadPoolExecutor(max_workers=2) as exe:
-            f1 = exe.submit(worker, part1, part1_pred, result_data["candidates"], model0, "cuda:0")
-            f2 = exe.submit(worker, part2, part2_pred, result_data["candidates"], model1, "cuda:1")
+            t1 = exe.submit(worker, part1, part1_pred, result_data["candidates"], model0, "cuda:0")
+            t2 = exe.submit(worker, part2, part2_pred, result_data["candidates"], model1, "cuda:1")
 
-            preds = f1.result() + f2.result()
+            reordered_preds = t1.result() + t2.result()
 
 
         # In main thread, save model's output to pickle file for later evaluation
-        result_data["pred_label"] = preds
+        result_data["pred_label"] = reordered_preds
         with open(f"pred_result_{each}_rag.pickle", "wb") as f:
             pickle.dump(result_data, f)
 

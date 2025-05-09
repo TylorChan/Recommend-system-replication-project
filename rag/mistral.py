@@ -16,9 +16,10 @@ prompt = f"Instruct: {task}\nQuery: "
 
 def main():
     datasets = {
-        "reddit": '../datasets/reddit/reddit_test.csv',
-        "redial": '../datasets/redial/redial_test.csv',
-        "inspired": '../datasets/inspired/inspired_test.csv',
+        # "reddit": '../datasets/reddit/reddit_test.csv',
+        # "redial": '../datasets/redial/redial_test.csv',
+        # "inspired": '../datasets/inspired/inspired_test.csv',
+        "GoRecDial": '../datasets/GoRecDial/GoRecDial_test.csv'
     }
 
     for each in datasets:
@@ -50,7 +51,7 @@ def main():
             # Compute the similarity scores
             scores = model.similarity(query_embeddings, passage_embeddings) * 100
 
-            # get the top-2 for current query
+            # get the top-20 for current query
             top_20_idx = np.argsort(scores.tolist()[0])[::-1][:20]
             preds.append(top_20_idx)
 

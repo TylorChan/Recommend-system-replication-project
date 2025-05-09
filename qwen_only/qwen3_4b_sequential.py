@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 
 model_name = "Qwen/Qwen3-4B"
-batch_size = 8
+batch_size = 16
 
 # Set padding left for decoder-only model
 # Use padding to do batch processing, so that each input is in the fixed length.
@@ -22,10 +22,8 @@ tokenizer.padding_side = "left"
 
 
 # use 2 GPUs
-model0 = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16).to("cuda:0")
-model1 = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16).to("cuda:1")
-model0.eval()
-model1.eval()
+model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16).to("cuda:0")
+model.eval()
 
 
 # apply Qwen 3's chat template to conversation and prompt defined in paper 
@@ -78,25 +76,13 @@ def generate_batch(model, batch_context, candidates, device):
     return rec_movies_batch
 
 
-# worker thread
-def worker(contexts_slice, model, candidates, device):
-    output = []
-
-    for i in tqdm(range(0, len(contexts_slice), batch_size)):
-
-        batch_context = contexts_slice[i : i + batch_size]
-
-        output.extend(generate_batch(model, batch_context, candidates, device))
-
-    return output
-
-
 def main():
     datasets = {
-        "reddit": '../datasets/reddit/reddit_test.csv',
-        "redial": '../datasets/redial/redial_test.csv',
-        "inspired": '../datasets/inspired/inspired_test.csv',
-    }
+            "reddit": '../datasets/reddit/reddit_test.csv',
+            "redial": '../datasets/redial/redial_test.csv',
+            "inspired": '../datasets/inspired/inspired_test.csv',
+            "GoRecDial": '../datasets/GoRecDial/GoRecDial_test.csv'
+        }
 
     for each in datasets:
         print(f"Working on {each}")
@@ -112,14 +98,11 @@ def main():
         all_contexts = test_data["context"]
         preds = []
 
-        half = (len(all_contexts) + 1) // 2
-        part1, part2 = all_contexts[:half], all_contexts[half:]
+        for i in tqdm(range(0, len(all_contexts), batch_size)):
 
-        # create two thread, each thread manage one GPU.
-        with ThreadPoolExecutor(max_workers=2) as exe:
-            f1 = exe.submit(worker, part1, model0, candidates, "cuda:0")
-            f2 = exe.submit(worker, part2, model1, candidates, "cuda:1")
-            preds = f1.result() + f2.result()
+            batch_context = all_contexts[i : i + batch_size]
+
+            preds.extend(generate_batch(model, batch_context, candidates, "cuda:0"))
 
 
         # In main thread, save model's output to pickle file for later evaluation
