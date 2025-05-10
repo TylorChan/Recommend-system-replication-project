@@ -40,7 +40,7 @@ def build_template(context):
     )
 
 
-# send 8 test data points to model, then get model's movie recommendation for each data points
+# send batch_size test data points to model, then get model's movie recommendation for each data points
 def generate_batch(model, batch_context, candidates, device):
     rec_movies_batch = []
     templated_texts = []

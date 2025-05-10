@@ -50,4 +50,4 @@ Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.
    - Then, we run Zero-shot Qwen3-4B to rerank the list of movies retrieved by Mistral. If you are on single-GPU platform, run ```qwen_reranker_sequential.py```. If you are on multi-GPU platform, run ```qwen_reranker_parallel.py```.
    - Finally, run ```evaluation.py``` to get recall and MRR of Mistral and Mistral+Qwen.
 
-- The pickle file will be generated during the Qwen and Mistral inference, storing the predicted movie list for late evaluation. 
+- Pickle files will be generated during the Qwen and Mistral inference, storing the predicted movie list for late evaluation. 

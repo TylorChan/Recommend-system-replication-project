@@ -52,7 +52,7 @@ Here is the list of recommended movies:{movies}
     )
 
 
-# send 8 test data points to model, then get model's movie recommendation for each data points
+# send batch_size test data points to model, then get model's movie recommendation for each data points
 def generate_batch(batch_context, batch_pred, candidates, model, device):
     rec_movies_batch = []
     templated_texts = []
