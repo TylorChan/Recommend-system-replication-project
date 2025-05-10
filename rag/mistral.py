@@ -1,3 +1,6 @@
+# modified from
+# https://huggingface.co/Linq-AI-Research/Linq-Embed-Mistral#sentence-transformers
+
 import pickle
 from data_utils_for_rag import get_test_data
 from tqdm import tqdm
