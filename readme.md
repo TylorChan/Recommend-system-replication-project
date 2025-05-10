@@ -39,7 +39,7 @@ Self-Supervised Bot-Play for Goal-oriented Dialogue](https://arxiv.org/pdf/1909.
 
 #### For LLMs
 - There might be a conflict as LLMs are using newest dependency version. Recommend to create and activate another virtual enviroment first.
-- run ```pip install -r requirements_new1.txt``` in either rag or qwen_only directory.
+- run ```pip install -r requirements.txt``` in either rag or qwen_only directory to setup dependcies.
 
 - In qwen_only folder:
    - For running Zero-shot Qwen3-4B to generate list of movies, run ```qwen3_4b_sequential.py```. If you are on multi-GPU platform, run ```qwen3_4b_parallel.py```. 
