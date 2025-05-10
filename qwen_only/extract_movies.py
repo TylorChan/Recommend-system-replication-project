@@ -1,3 +1,6 @@
+# modified from
+# https://github.com/AaronHeee/LLMs-as-Zero-Shot-Conversational-RecSys/blob/master/src/utils.py
+# https://github.com/AaronHeee/LLMs-as-Zero-Shot-Conversational-RecSys/blob/master/src/vicuna/general/extract.py#L29
 import re
 import numpy as np
 from editdistance import eval as distance
